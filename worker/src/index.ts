@@ -4,6 +4,7 @@ import { requireAuth } from "./middleware/auth.middleware";
 import { corsMiddleware } from "./middleware/cors.middleware";
 import { loggerMiddleware } from "./middleware/logger.middleware";
 import { foodRoutes, foodSearchHandler } from "./routes/food.routes";
+import { historyRoutes } from "./routes/history.routes";
 import { mealRoutes } from "./routes/meal.routes";
 import { profileRoutes } from "./routes/profile.routes";
 import { summaryRoutes } from "./routes/summary.routes";
@@ -37,6 +38,7 @@ app.route("/api/food", foodRoutes);
 app.get("/api/foods/search", foodSearchHandler);
 app.route("/api/meals", mealRoutes);
 app.route("/api/daily-summary", summaryRoutes);
+app.route("/api/history", historyRoutes);
 app.route("/api/profile", profileRoutes);
 
 export default app;

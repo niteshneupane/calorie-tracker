@@ -138,6 +138,19 @@ export type DailySummary = NutritionValues & {
   date: string;
 };
 
+export type HistoryDay = {
+  date: string;
+  calories: number;
+  proteinG: number;
+  mealCount: number;
+};
+
+export type HistoryResponse = {
+  from: string;
+  to: string;
+  items: HistoryDay[];
+};
+
 export type UserProfile = {
   id: string;
   authProvider: string;

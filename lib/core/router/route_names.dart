@@ -9,9 +9,7 @@ class RouteNames {
   static const foodConfirmation = '/food-confirmation';
   static const multipleFoodConfirmation = '/multiple-food-confirmation';
   static const mealSaved = '/meal-saved';
-  static const mealDetail = '/meal';
   static const history = '/history';
   static const foods = '/foods';
-  static const customFood = '/foods/custom';
   static const profile = '/profile';
 }

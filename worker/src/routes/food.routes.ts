@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { Context } from "hono";
 import type { AppEnv, NutritionPreviewItem } from "../types";
 import { parseFoodText } from "../services/ai.service";
-import { findFoodByNameOrAlias, searchFoods } from "../services/food.service";
+import { findFoodByNameOrAlias, listFoods, searchFoods } from "../services/food.service";
 import { calculateNutrition, sumNutrition, zeroNutritionValues } from "../services/nutrition.service";
 import { fail, ok } from "../utils/response";
 import { isNonEmptyString, validateParseFoodRequest, validatePreviewFoodRequest } from "../utils/validators";
@@ -62,7 +62,6 @@ foodRoutes.get("/search", foodSearchHandler);
 
 export async function foodSearchHandler(c: Context<AppEnv>): Promise<Response> {
   const query = c.req.query("q");
-  if (!isNonEmptyString(query)) return fail(c, 400, "BAD_REQUEST", "Search query is required");
-  const items = await searchFoods(c.env, query);
+  const items = isNonEmptyString(query) ? await searchFoods(c.env, query) : await listFoods(c.env);
   return ok(c, { items });
 }

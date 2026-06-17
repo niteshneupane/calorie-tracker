@@ -17,6 +17,5 @@ Map<String, WidgetBuilder> buildAppRoutes() => {
   RouteNames.mealSaved: (_) => const MealSavedScreen(),
   RouteNames.history: (_) => const HistoryScreen(),
   RouteNames.foods: (_) => const FoodsScreen(),
-  RouteNames.customFood: (_) => const CustomFoodScreen(),
   RouteNames.profile: (_) => const ProfileScreen(),
 };

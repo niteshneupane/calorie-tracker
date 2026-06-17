@@ -4,18 +4,24 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/api/api_client.dart';
 import '../core/config/app_config.dart';
+import '../core/storage/local_preferences.dart';
 import '../core/storage/token_storage.dart';
 import '../core/utils/date_utils.dart';
 import 'dashboard/data/dashboard_repository.dart';
 import 'food_entry/data/food_entry_repository.dart';
 import 'food_entry/domain/nutrition_models.dart';
 import 'foods/data/foods_repository.dart';
+import 'history/data/history_repository.dart';
 import 'meal_logs/data/meal_repository.dart';
 import 'profile/data/profile_repository.dart';
 
 final tokenStorageProvider = Provider<TokenStorage>(
   (ref) => const TokenStorage(FlutterSecureStorage()),
 );
+
+final localPreferencesProvider = Provider<LocalPreferences>((ref) {
+  throw StateError('LocalPreferences must be overridden in main.dart');
+});
 
 final apiClientProvider = Provider<ApiClient>(
   (ref) => ApiClient(() async {
@@ -39,6 +45,9 @@ final mealRepositoryProvider = Provider(
 final foodsRepositoryProvider = Provider(
   (ref) => FoodsRepository(ref.read(apiClientProvider)),
 );
+final historyRepositoryProvider = Provider(
+  (ref) => HistoryRepository(ref.read(apiClientProvider)),
+);
 final profileRepositoryProvider = Provider(
   (ref) => ProfileRepository(ref.read(apiClientProvider)),
 );
@@ -61,18 +70,29 @@ class AuthState {
 
 class AuthController extends Notifier<AuthState> {
   @override
-  AuthState build() =>
-      const AuthState(isAuthenticated: false, onboardingComplete: false);
+  AuthState build() {
+    final preferences = ref.read(localPreferencesProvider);
+    return AuthState(
+      isAuthenticated: false,
+      onboardingComplete: preferences.onboardingComplete,
+    );
+  }
 
   Future<void> signInMock() async {
-    state = state.copyWith(isAuthenticated: true);
+    final preferences = ref.read(localPreferencesProvider);
+    state = state.copyWith(
+      isAuthenticated: true,
+      onboardingComplete: preferences.onboardingComplete,
+    );
   }
 
   Future<void> completeOnboarding() async {
+    await ref.read(localPreferencesProvider).setOnboardingComplete(true);
     state = state.copyWith(onboardingComplete: true);
   }
 
   Future<void> signOut() async {
+    await ref.read(localPreferencesProvider).setOnboardingComplete(false);
     state = const AuthState(isAuthenticated: false, onboardingComplete: false);
   }
 }
@@ -192,10 +212,18 @@ class MealController extends Notifier<AsyncValue<void>> {
 final mealControllerProvider =
     NotifierProvider<MealController, AsyncValue<void>>(MealController.new);
 
-final historyControllerProvider = FutureProvider((ref) async {
-  return ref
-      .read(mealRepositoryProvider)
-      .mealsForDate(AppDateUtils.apiDate(DateTime.now()));
+final mealsForDateProvider = FutureProvider.family<List<MealLog>, String>((
+  ref,
+  date,
+) {
+  return ref.read(mealRepositoryProvider).mealsForDate(date);
+});
+
+final historyControllerProvider = FutureProvider<HistoryData>((ref) async {
+  final today = DateTime.now();
+  final from = AppDateUtils.apiDate(today.subtract(const Duration(days: 6)));
+  final to = AppDateUtils.apiDate(today);
+  return ref.read(historyRepositoryProvider).load(from: from, to: to);
 });
 
 final foodsControllerProvider = FutureProvider.family<List<PublicFood>, String>(

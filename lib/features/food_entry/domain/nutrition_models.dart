@@ -148,12 +148,15 @@ class NutritionPreviewItem extends NutritionValues {
         ironMg: _double(json['ironMg']),
         potassiumMg: _double(json['potassiumMg']),
         foodId: json['foodId'] as String?,
-        name: json['name'] as String?,
-        inputName: json['inputName'] as String,
+        name: json['name'] as String? ?? json['foodName'] as String?,
+        inputName:
+            (json['inputName'] as String?) ??
+            (json['foodName'] as String?) ??
+            "",
         grams: _nullableDouble(json['grams']),
         confidence: _double(json['confidence']),
-        isEstimate: json['isEstimate'] as bool,
-        needsManualSelection: json['needsManualSelection'] as bool,
+        isEstimate: (json['isEstimate'] as bool?) ?? false,
+        needsManualSelection: (json['needsManualSelection'] as bool?) ?? false,
       );
 
   Map<String, dynamic> toSaveJson({

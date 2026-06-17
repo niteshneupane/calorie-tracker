@@ -22,6 +22,11 @@ export async function searchFoods(env: Bindings, query: string): Promise<PublicF
   return (result.results ?? []).map(mapFoodRowToPublicFood);
 }
 
+export async function listFoods(env: Bindings): Promise<PublicFood[]> {
+  const result = await env.DB.prepare("SELECT * FROM foods ORDER BY name LIMIT 20").all<FoodRow>();
+  return (result.results ?? []).map(mapFoodRowToPublicFood);
+}
+
 export function mapFoodRowToPublicFood(food: FoodRow): PublicFood {
   return {
     id: food.id,

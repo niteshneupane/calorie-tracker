@@ -10,21 +10,23 @@ class FoodsRepository {
   final ApiClient _apiClient;
 
   Future<List<PublicFood>> search(String query) async {
-    if (AppConfig.useMockData || query.trim().isEmpty) {
+    final trimmedQuery = query.trim();
+    if (AppConfig.useMockData) {
       return MockData.foods
           .where(
             (food) =>
-                query.trim().isEmpty ||
-                food.name.toLowerCase().contains(query.toLowerCase()) ||
+                trimmedQuery.isEmpty ||
+                food.name.toLowerCase().contains(trimmedQuery.toLowerCase()) ||
                 food.aliases.any(
-                  (alias) => alias.contains(query.toLowerCase()),
+                  (alias) => alias.contains(trimmedQuery.toLowerCase()),
                 ),
           )
           .toList();
     }
+    final queryParameters = trimmedQuery.isEmpty ? null : {'q': trimmedQuery};
     final json = await _apiClient.getJson(
       ApiEndpoints.searchFood,
-      queryParameters: {'q': query},
+      queryParameters: queryParameters,
     );
     return (json['items'] as List)
         .map((item) => PublicFood.fromJson(item))

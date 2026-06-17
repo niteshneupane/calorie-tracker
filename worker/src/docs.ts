@@ -51,6 +51,7 @@ export function openApiSpec(origin: string): Record<string, unknown> {
       { name: "Food" },
       { name: "Meals" },
       { name: "Summary" },
+      { name: "History" },
       { name: "Profile" },
     ],
     components: {
@@ -165,6 +166,34 @@ export function openApiSpec(origin: string): Record<string, unknown> {
           },
         },
       },
+      "/api/history": {
+        get: {
+          tags: ["History"],
+          summary: "Get recent nutrition history",
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: "from",
+              in: "query",
+              required: true,
+              schema: { type: "string", format: "date" },
+              example: "2026-06-11",
+            },
+            {
+              name: "to",
+              in: "query",
+              required: true,
+              schema: { type: "string", format: "date" },
+              example: "2026-06-17",
+            },
+          ],
+          responses: {
+            "200": jsonResponse("History response", "HistoryResponse"),
+            "400": errorResponse(),
+            "401": errorResponse(),
+          },
+        },
+      },
       "/api/profile": {
         get: {
           tags: ["Profile"],
@@ -192,7 +221,7 @@ export function openApiSpec(origin: string): Record<string, unknown> {
   };
 }
 
-function foodSearchPath(summary = "Search foods"): Record<string, unknown> {
+function foodSearchPath(summary = "List or search foods"): Record<string, unknown> {
   return {
     get: {
       tags: ["Food"],
@@ -202,8 +231,9 @@ function foodSearchPath(summary = "Search foods"): Record<string, unknown> {
         {
           name: "q",
           in: "query",
-          required: true,
+          required: false,
           schema: { type: "string", minLength: 1 },
+          description: "When omitted, returns the default food list.",
           example: "chowmein",
         },
       ],
@@ -439,6 +469,25 @@ function schemas(): Record<string, unknown> {
         },
       },
       required: ["date", "goal", "consumed", "remaining"],
+    },
+    HistoryDay: {
+      type: "object",
+      properties: {
+        date: { type: "string", format: "date", example: "2026-06-17" },
+        calories: { type: "number", example: 1450 },
+        proteinG: { type: "number", example: 62 },
+        mealCount: { type: "number", example: 3 },
+      },
+      required: ["date", "calories", "proteinG", "mealCount"],
+    },
+    HistoryResponse: {
+      type: "object",
+      properties: {
+        from: { type: "string", format: "date", example: "2026-06-11" },
+        to: { type: "string", format: "date", example: "2026-06-17" },
+        items: { type: "array", items: { $ref: "#/components/schemas/HistoryDay" } },
+      },
+      required: ["from", "to", "items"],
     },
     UserProfile: {
       type: "object",

@@ -5,21 +5,28 @@ export async function parseFoodText(env: Bindings, text: string, locale = "en-US
   const cached = await env.FOOD_PARSE_CACHE.get(cacheKey, "json");
   if (cached && isParseFoodResponse(cached)) return cached;
 
-  const aiResult = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
-    messages: [
-      {
-        role: "system",
-        content: "You parse food text into strict JSON for a nutrition app.",
-      },
-      {
-        role: "user",
-        content: buildFoodParserPrompt(text, locale),
-      },
-    ],
-  });
+  let parsed: ParseFoodResponse | null = null;
+  try {
+    const aiResult = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+      messages: [
+        {
+          role: "system",
+          content: "You parse food text into strict JSON for a nutrition app.",
+        },
+        {
+          role: "user",
+          content: buildFoodParserPrompt(text, locale),
+        },
+      ],
+    });
 
-  const parsed = safeJsonParseAiResponse(aiResult);
-  if (!isParseFoodResponse(parsed)) throw new Error("AI response did not include a valid items array");
+    const candidate = safeJsonParseAiResponse(aiResult);
+    parsed = isParseFoodResponse(candidate) ? candidate : null;
+  } catch (error) {
+    console.warn("Workers AI food parse failed; using fallback parser", error);
+  }
+
+  parsed ??= fallbackParseFoodText(text);
 
   await env.FOOD_PARSE_CACHE.put(cacheKey, JSON.stringify(parsed), { expirationTtl: 60 * 60 * 24 * 30 });
   return parsed;
@@ -96,4 +103,100 @@ function extractFirstJsonObject(text: string): string | null {
 
 function isParseFoodResponse(value: unknown): value is ParseFoodResponse {
   return Boolean(value && typeof value === "object" && Array.isArray((value as ParseFoodResponse).items));
+}
+
+function fallbackParseFoodText(text: string): ParseFoodResponse {
+  const normalized = text.trim().toLowerCase().replace(/\s+/g, " ");
+  const quantity = extractQuantity(normalized);
+  const match = foodPatterns.find((pattern) => pattern.patterns.some((name) => normalized.includes(name)));
+
+  if (!match) {
+    return {
+      items: [
+        {
+          rawText: text,
+          canonicalName: normalized,
+          quantity,
+          unit: extractUnit(normalized) ?? "serving",
+          estimatedGrams: null,
+          estimatedMl: null,
+          confidence: 0.3,
+          possibleVariants: [],
+        },
+      ],
+    };
+  }
+
+  return {
+    items: [
+      {
+        rawText: text,
+        canonicalName: match.canonicalName,
+        quantity,
+        unit: extractUnit(normalized) ?? match.unit,
+        estimatedGrams: match.grams * quantity,
+        estimatedMl: match.ml,
+        confidence: 0.65,
+        possibleVariants: match.variants,
+      },
+    ],
+  };
+}
+
+const foodPatterns = [
+  {
+    patterns: ["chowmin", "chowmein", "noodles"],
+    canonicalName: "vegetable chowmein",
+    unit: "plate",
+    grams: 350,
+    ml: null,
+    variants: ["vegetable chowmein", "chicken chowmein", "egg chowmein"],
+  },
+  {
+    patterns: ["dal bhat", "daal bhat", "thali"],
+    canonicalName: "dal bhat",
+    unit: "thali",
+    grams: 520,
+    ml: null,
+    variants: ["dal bhat", "rice and dal", "rice and curry"],
+  },
+  {
+    patterns: ["momo", "momos"],
+    canonicalName: "chicken momo",
+    unit: "pcs",
+    grams: 30,
+    ml: null,
+    variants: ["chicken momo", "buff momo", "vegetable momo"],
+  },
+  {
+    patterns: ["boiled egg", "egg"],
+    canonicalName: "boiled egg",
+    unit: "piece",
+    grams: 50,
+    ml: null,
+    variants: ["boiled egg"],
+  },
+  {
+    patterns: ["milk tea", "chiya", "tea"],
+    canonicalName: "milk tea",
+    unit: "cup",
+    grams: 240,
+    ml: 240,
+    variants: ["milk tea", "black tea"],
+  },
+];
+
+function extractQuantity(text: string): number {
+  const match = text.match(/\b(\d+(?:\.\d+)?)\b/);
+  if (!match) return 1;
+  const value = Number(match[1]);
+  return Number.isFinite(value) && value > 0 ? value : 1;
+}
+
+function extractUnit(text: string): string | null {
+  const match = text.match(/\b(?:\d+(?:\.\d+)?\s*)?(plate|thali|cup|bowl|pcs|pieces|piece|serving|egg|eggs)\b/);
+  if (!match) return null;
+  if (match[1] === "eggs") return "egg";
+  if (match[1] === "pieces") return "piece";
+  return match[1];
 }

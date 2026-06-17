@@ -8,8 +8,9 @@ export const profileRoutes = new Hono<AppEnv>();
 
 profileRoutes.get("/", async (c) => {
   const auth = c.get("authUser");
-  const profile = await getProfile(c.env, auth.sub);
-  if (!profile) return fail(c, 404, "PROFILE_NOT_FOUND", "Profile not found");
+  const profile =
+    (await getProfile(c.env, auth.sub)) ??
+    (await upsertProfile(c.env, auth.sub, auth, {}));
   return ok(c, profile);
 });
 
