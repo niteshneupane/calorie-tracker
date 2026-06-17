@@ -1,0 +1,20 @@
+name = "calorie-tracker-api"
+main = "src/index.ts"
+compatibility_date = "2026-06-17"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "calorie_tracker_db"
+database_id = "ab2f4d20-5e89-4283-8779-8f8a220cc987"
+
+[[kv_namespaces]]
+binding = "FOOD_PARSE_CACHE"
+id = "106abeedc5184cd4ae53e5e8a25c6841"
+
+[ai]
+binding = "AI"
+
+[vars]
+CLERK_ISSUER = "https://regular-monkey-79.clerk.accounts.dev"
+CLERK_JWKS_URL = "https://regular-monkey-79.clerk.accounts.dev/.well-known/jwks.json"
+CLERK_AUDIENCE = ""

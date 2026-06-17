@@ -1,0 +1,921 @@
+You are an expert Flutter engineer.
+
+Build the Flutter mobile app for "AaharLog", a calorie intake tracker.
+
+Important:
+I have connected Stitch through MCP.
+Use the Stitch design named:
+
+"AaharLog App UI Design"
+
+Use that design as the visual source of truth.
+Match the layout, spacing, typography, colors, components, and screen structure from the Stitch design as closely as possible.
+
+Do not invent a different UI.
+Do not replace the design with generic Flutter templates.
+Do not skip screens shown in the Stitch design.
+If an exact asset/icon is unavailable, use a close Material icon placeholder and add a TODO comment.
+
+Backend:
+The backend is already implemented and deployed here:
+
+https://calorie-tracker-api.developernpne.workers.dev
+
+API documentation is here:
+
+https://calorie-tracker-api.developernpne.workers.dev/docs
+
+Use the API docs as the source of truth for:
+- endpoint paths
+- request body shapes
+- response body shapes
+- auth requirements
+- error shapes
+
+Before implementing API integration:
+1. Inspect the API docs at:
+   https://calorie-tracker-api.developernpne.workers.dev/docs
+2. Match the Flutter API client and models to the documented backend exactly.
+3. Do not guess endpoint paths if the docs show something different.
+4. Do not use placeholder endpoint paths when the docs provide the real ones.
+5. Set the default backend base URL to:
+   https://calorie-tracker-api.developernpne.workers.dev
+
+Backend stack:
+- Cloudflare Workers
+- TypeScript
+- Hono
+- D1
+- KV
+- Workers AI
+- Clerk authentication
+
+This task is only for the Flutter app.
+
+App name:
+AaharLog
+
+Main concept:
+Users track daily calorie intake by typing natural food text like:
+- "chowmin 1 plate"
+- "dal bhat 1 thali"
+- "2 boiled eggs"
+- "momo 10 pcs"
+- "milk tea 1 cup"
+
+The app sends the text to the backend, gets parsed foods and nutrition preview, asks user to confirm, then saves the meal.
+
+Tech stack:
+- Flutter
+- Dart
+- Riverpod for state management
+- Dio for HTTP API
+- auto_route for navigation
+- freezed for immutable models
+- json_serializable for JSON parsing
+- flutter_secure_storage for secure local token storage if needed
+- shared_preferences for lightweight local settings
+- fl_chart for charts/progress visuals if needed
+- intl for date formatting
+- Clerk authentication using the official package:
+  https://pub.dev/packages/clerk_flutter
+
+Auth package requirement:
+Use:
+clerk_flutter
+
+Use the latest compatible version from pub.dev.
+At the time of writing, pub.dev lists:
+clerk_flutter: ^0.0.15-beta
+
+Important:
+The Clerk Flutter SDK is beta.
+Follow the current package docs and examples from:
+https://pub.dev/packages/clerk_flutter
+https://pub.dev/documentation/clerk_flutter/latest/clerk_flutter/
+
+Flutter/Dart version:
+Use versions compatible with clerk_flutter.
+The package currently requires:
+- Flutter >= 3.27.4
+- Dart >= 3.6.2
+
+Use Material 3.
+
+Create a production-ready Flutter project structure.
+
+Suggested folder structure:
+
+lib/
+  main.dart
+  app.dart
+
+  core/
+    config/
+      app_config.dart
+    constants/
+      app_constants.dart
+    router/
+      app_router.dart
+      route_names.dart
+    theme/
+      app_theme.dart
+      app_colors.dart
+      app_text_styles.dart
+      app_spacing.dart
+      app_radius.dart
+    api/
+      api_client.dart
+      api_endpoints.dart
+      api_exception.dart
+      auth_interceptor.dart
+    storage/
+      token_storage.dart
+      local_preferences.dart
+    utils/
+      date_utils.dart
+      formatters.dart
+      validators.dart
+
+  features/
+    auth/
+      data/
+        auth_repository.dart
+        clerk_auth_repository.dart
+      application/
+        auth_controller.dart
+      presentation/
+        splash_screen.dart
+        sign_in_screen.dart
+
+    onboarding/
+      data/
+        onboarding_repository.dart
+      application/
+        onboarding_controller.dart
+      presentation/
+        onboarding_profile_screen.dart
+        onboarding_goal_preview_screen.dart
+
+    dashboard/
+      data/
+        dashboard_repository.dart
+      application/
+        dashboard_controller.dart
+      presentation/
+        today_dashboard_screen.dart
+        widgets/
+          calorie_progress_card.dart
+          macro_progress_card.dart
+          micronutrient_card.dart
+          meal_section_card.dart
+          empty_dashboard_state.dart
+
+    food_entry/
+      data/
+        food_entry_repository.dart
+      application/
+        food_entry_controller.dart
+      domain/
+        parsed_food_item.dart
+        nutrition_preview.dart
+        food_variant.dart
+        save_meal_request.dart
+      presentation/
+        add_food_screen.dart
+        food_analyzing_screen.dart
+        food_confirmation_screen.dart
+        multiple_food_confirmation_screen.dart
+        meal_saved_screen.dart
+        widgets/
+          food_text_input.dart
+          meal_type_selector.dart
+          suggested_food_chips.dart
+          food_confirmation_card.dart
+          portion_selector.dart
+          nutrition_preview_card.dart
+          low_confidence_state.dart
+
+    meal_logs/
+      data/
+        meal_repository.dart
+      application/
+        meal_controller.dart
+      domain/
+        meal.dart
+        meal_item.dart
+      presentation/
+        meal_detail_screen.dart
+
+    history/
+      data/
+        history_repository.dart
+      application/
+        history_controller.dart
+      presentation/
+        history_screen.dart
+        widgets/
+          weekly_calendar_strip.dart
+          daily_history_card.dart
+          weekly_trend_chart.dart
+
+    foods/
+      data/
+        foods_repository.dart
+      application/
+        foods_controller.dart
+      domain/
+        food.dart
+        custom_food_request.dart
+      presentation/
+        foods_screen.dart
+        custom_food_screen.dart
+        widgets/
+          food_search_bar.dart
+          food_list_card.dart
+          custom_food_form.dart
+
+    profile/
+      data/
+        profile_repository.dart
+      application/
+        profile_controller.dart
+      domain/
+        user_profile.dart
+      presentation/
+        profile_screen.dart
+        widgets/
+          profile_header.dart
+          nutrition_goal_card.dart
+          settings_list_tile.dart
+
+  shared/
+    widgets/
+      app_button.dart
+      app_card.dart
+      app_text_field.dart
+      app_loading.dart
+      app_error_view.dart
+      app_empty_state.dart
+      app_bottom_nav.dart
+      app_scaffold.dart
+
+Requirements:
+
+1. Use Stitch design
+- Inspect the connected Stitch MCP design "AaharLog App UI Design".
+- Implement the screens and components according to that design.
+- Extract colors, text styles, spacing, card radii, icons, and component layout from the design.
+- Create reusable widgets that match the design system.
+- Keep naming clear and consistent.
+
+2. Use actual backend docs
+- Use:
+  https://calorie-tracker-api.developernpne.workers.dev/docs
+- Implement API paths exactly as documented.
+- If this prompt contains an endpoint path and the docs differ, prefer the docs.
+- If response fields differ, prefer the docs.
+- If docs expose OpenAPI JSON, use it to generate or verify models manually.
+- Add comments where API behavior is unclear.
+
+3. App screens to implement
+
+Implement these screens:
+
+A. SplashScreen
+- App name: AaharLog
+- Nutrition/food icon
+- Tagline: "Track meals naturally"
+- Navigate to SignInScreen if not authenticated.
+- Navigate to TodayDashboardScreen if authenticated and onboarded.
+- Navigate to OnboardingProfileScreen if authenticated but onboarding incomplete.
+
+B. SignInScreen
+- App name and value proposition
+- Text: "Log meals in your own words."
+- Buttons:
+  - Continue with Google
+  - Continue with Email
+- Small privacy note:
+  "Your food logs stay private."
+- Use Clerk auth through clerk_flutter.
+- Do not implement Firebase, Supabase, or Convex auth.
+
+C. OnboardingProfileScreen
+Fields:
+- Age
+- Sex
+- Height
+- Weight
+- Activity level
+- Goal:
+  - Lose weight
+  - Maintain
+  - Gain muscle
+- Show progress: Step 1 of 2
+- Button: Continue
+
+D. OnboardingGoalPreviewScreen
+Show calculated targets:
+- Calories
+- Protein
+- Carbs
+- Fat
+Allow editing targets manually.
+Button: Start Tracking
+Show progress: Step 2 of 2
+
+E. TodayDashboardScreen
+Main app screen.
+Must include:
+- Greeting/title: Today
+- Date
+- Avatar/profile icon
+- Large calorie progress card:
+  - "1,450 / 2,200 kcal"
+  - "750 kcal remaining"
+- Macro progress cards:
+  - Protein: 62 / 120 g
+  - Carbs: 180 / 250 g
+  - Fat: 48 / 70 g
+- Micronutrient cards:
+  - Fiber
+  - Sodium
+  - Calcium
+  - Iron
+  - Potassium
+- Meals section:
+  - Breakfast
+  - Lunch
+  - Snack
+  - Dinner
+- Example meal:
+  - Vegetable Chowmein
+  - ~525 kcal
+- Floating action button:
+  - Add Food
+- Bottom navigation:
+  - Today
+  - History
+  - Foods
+  - Profile
+
+F. AddFoodScreen
+- Header: "Add food"
+- Subtitle: "Type what you ate. We'll estimate it."
+- Large text input placeholder:
+  "e.g. chowmin 1 plate, 2 boiled eggs"
+- Meal type selector:
+  - Breakfast
+  - Lunch
+  - Snack
+  - Dinner
+- Suggested chips:
+  - "dal bhat 1 thali"
+  - "momo 10 pcs"
+  - "milk tea 1 cup"
+  - "2 boiled eggs"
+- Primary button:
+  - Analyze food
+- Secondary option:
+  - Search manually
+- On submit:
+  - Call food parse endpoint from API docs.
+  - Call food preview endpoint from API docs.
+  - Navigate to FoodAnalyzingScreen or show loading state.
+  - Then navigate to FoodConfirmationScreen or MultipleFoodConfirmationScreen.
+
+G. FoodAnalyzingScreen
+- Text: "Analyzing your food..."
+- Smaller text: "Estimating portion and nutrients"
+- Skeleton/placeholder cards matching Stitch design
+
+H. FoodConfirmationScreen
+For one parsed item.
+Show:
+- Food name, for example "Vegetable Chowmein"
+- Label: "Estimated"
+- Confidence: "Medium confidence"
+- Portion: "1 medium plate"
+- Estimated grams: "350 g"
+- Nutrition preview:
+  - Calories: "~525 kcal"
+  - Protein: "14 g"
+  - Carbs: "72 g"
+  - Fat: "18 g"
+- Micros:
+  - Fiber: "5 g"
+  - Sodium: "850 mg"
+  - Calcium: "80 mg"
+  - Iron: "2.1 mg"
+  - Potassium: "420 mg"
+- Portion selector:
+  - Small plate - 250 g
+  - Medium plate - 350 g
+  - Large plate - 500 g
+  - Custom
+- Variant selector:
+  - Vegetable Chowmein
+  - Chicken Chowmein
+  - Egg Chowmein
+- Buttons:
+  - Confirm & Save
+  - Edit Manually
+- Must clearly show:
+  "Estimated from 350 g medium plate"
+- Use "~" for estimated calories.
+- Do not show fake precision.
+
+I. MultipleFoodConfirmationScreen
+For multiple parsed foods.
+Example:
+- Dal Bhat
+- Milk Tea
+Each card:
+- Name
+- Portion
+- Calories
+- Edit button
+Bottom sticky total:
+- Total: "~790 kcal"
+- Confirm & Save button
+
+J. MealSavedScreen
+- Checkmark
+- Text: "Meal saved"
+- Updated daily calories:
+  "1,450 / 2,200 kcal"
+- Buttons:
+  - Back to Today
+  - Add another food
+
+K. MealDetailScreen
+- Meal type: Lunch
+- Date/time
+- Food items list
+- Per item calories/macros
+- Total nutrition
+- Edit meal
+- Delete meal
+
+L. HistoryScreen
+- Weekly calendar strip
+- Daily calorie totals
+- List of days
+- Each day card:
+  - Date
+  - Calories consumed
+  - Protein
+  - Meal count
+- Simple weekly trend chart
+
+M. FoodsScreen
+- Search bar: "Search foods"
+- Tabs:
+  - All Foods
+  - My Foods
+- Food cards:
+  - Vegetable Chowmein
+  - Dal Bhat
+  - Chicken Momo
+  - Boiled Egg
+- Each card:
+  - Default serving
+  - Calories per serving
+  - Macro mini text
+- Button:
+  - Add Custom Food
+
+N. CustomFoodScreen
+Form:
+- Food name
+- Serving size
+- Grams
+- Calories
+- Protein
+- Carbs
+- Fat
+Optional advanced nutrients:
+- Fiber
+- Sugar
+- Sodium
+- Calcium
+- Iron
+- Potassium
+Button:
+- Save Custom Food
+
+O. ProfileScreen
+- User avatar
+- Name/email from Clerk/profile API where available
+- Current goal
+- Daily targets
+- Body stats
+- Settings list:
+  - Edit profile
+  - Nutrition goals
+  - Privacy
+  - Export data
+  - Sign out
+
+P. EmptyStateDashboard
+For a new user:
+- Calorie ring shows 0 / goal
+- Message: "No meals logged yet"
+- Text: "Start by typing what you ate."
+- Button: Add Food
+- Suggested quick entries
+
+Q. LowConfidenceState
+When AI is unsure:
+- Title: "We need a bit more detail"
+- Text: "Your meal was too vague to estimate accurately."
+- Example:
+  User typed "normal lunch"
+- Suggestions:
+  - dal bhat
+  - rice and curry
+  - noodles
+  - custom food
+- Buttons:
+  - Try again
+  - Search manually
+
+4. Backend API integration
+
+Base URL:
+https://calorie-tracker-api.developernpne.workers.dev
+
+Docs:
+https://calorie-tracker-api.developernpne.workers.dev/docs
+
+Implement AppConfig:
+
+class AppConfig {
+  static const apiBaseUrl = 'https://calorie-tracker-api.developernpne.workers.dev';
+  static const useMockData = true;
+  static const clerkPublishableKey = String.fromEnvironment('CLERK_PUBLISHABLE_KEY');
+}
+
+Use --dart-define for Clerk:
+flutter run --dart-define=CLERK_PUBLISHABLE_KEY=pk_test_xxx
+
+Do not hardcode secret keys.
+Only Clerk publishable key may be used in Flutter.
+
+Authentication:
+Backend uses Clerk JWT.
+All API requests except health/docs require:
+Authorization: Bearer <clerk_jwt>
+
+Use clerk_flutter:
+- Add clerk_flutter to pubspec.yaml.
+- Initialize Clerk correctly according to the current package docs.
+- Use ClerkAuth or the current recommended root widget from clerk_flutter docs.
+- Use ClerkAuthBuilder or current recommended auth state builder if documented.
+- Implement sign-in/sign-up UI using clerk_flutter widgets/APIs when available.
+- Retrieve the active session token/JWT from Clerk using the current package API.
+- Attach the token to Dio requests through AuthInterceptor.
+- If the Clerk SDK API differs from this prompt, follow the official clerk_flutter docs.
+
+Important:
+Do not send userId in API requests.
+The backend derives user identity from Clerk JWT.
+Never add userId to request bodies or query params.
+
+Expected endpoints:
+Use docs as source of truth, but likely endpoints include:
+
+Health:
+GET /
+
+Parse food:
+POST /api/food/parse
+
+Preview nutrition:
+POST /api/food/preview
+
+Search foods:
+GET /api/food/search?q=chowmein
+or
+GET /api/foods/search?q=chowmein
+
+Save meal:
+POST /api/meals
+
+Get meals:
+GET /api/meals?date=YYYY-MM-DD
+
+Delete meal:
+DELETE /api/meals/:id?date=YYYY-MM-DD
+
+Daily summary:
+GET /api/daily-summary?date=YYYY-MM-DD
+
+Profile:
+GET /api/profile
+PUT /api/profile
+
+Again:
+If docs show different endpoint names, use the docs.
+
+5. State management
+
+Use Riverpod.
+
+Implement providers/controllers:
+- authControllerProvider
+- onboardingControllerProvider
+- dashboardControllerProvider
+- foodEntryControllerProvider
+- mealControllerProvider
+- historyControllerProvider
+- foodsControllerProvider
+- profileControllerProvider
+
+Use AsyncValue for loading/error/data states.
+
+Controllers should call repositories.
+Repositories should call ApiClient.
+Widgets should not directly call Dio.
+
+6. Models
+
+Use freezed + json_serializable if possible.
+
+Create models based on the backend docs response schemas:
+- ParsedFoodItem
+- ParseFoodResponse
+- NutritionPreview
+- NutritionPreviewItem
+- NutritionTotal
+- SaveMealRequest
+- SaveMealItem
+- DailySummary
+- NutritionGoal
+- NutritionConsumed
+- NutritionRemaining
+- Meal
+- MealItem
+- Food
+- UserProfile
+- ApiError
+
+Match backend JSON field names exactly.
+
+Expected fields may include:
+- canonicalName
+- estimatedGrams
+- estimatedMl
+- possibleVariants
+- proteinG
+- carbsG
+- fatG
+- fiberG
+- sodiumMg
+- calciumMg
+- ironMg
+- potassiumMg
+- isEstimate
+- needsManualSelection
+- mealType
+- dailyCalorieGoal
+- proteinGoalG
+- carbsGoalG
+- fatGoalG
+
+If the docs differ, follow the docs.
+
+7. Navigation
+
+Use auto_route.
+
+Routes:
+- /
+- /signin
+- /onboarding/profile
+- /onboarding/goals
+- /today
+- /add-food
+- /food-analyzing
+- /food-confirmation
+- /multiple-food-confirmation
+- /meal-saved
+- /meal/:id
+- /history
+- /foods
+- /foods/custom
+- /profile
+
+Implement bottom navigation for:
+- /today
+- /history
+- /foods
+- /profile
+
+Use route guards:
+- If unauthenticated, redirect to /signin.
+- If authenticated but onboarding incomplete, redirect to /onboarding/profile.
+- If authenticated and onboarded, allow main app.
+
+For MVP:
+- Use local preference onboardingComplete flag.
+- Store with shared_preferences.
+
+8. UI behavior
+
+Food entry flow:
+- User opens AddFoodScreen.
+- User enters text.
+- User selects meal type.
+- On Analyze Food:
+  1. call food parse endpoint from API docs
+  2. call food preview endpoint from API docs using parsed result
+  3. if one item, go to FoodConfirmationScreen
+  4. if multiple items, go to MultipleFoodConfirmationScreen
+  5. if low confidence or no match, show LowConfidenceState
+- On Confirm & Save:
+  1. call save meal endpoint from API docs
+  2. navigate to MealSavedScreen
+  3. refresh dashboard summary
+
+Dashboard:
+- Fetch daily summary for today's date.
+- Fetch meals for today's date.
+- Show loading skeleton while fetching.
+- Show EmptyStateDashboard when no meals exist.
+- Show dashboard data when available.
+- Use sample fallback data only if running in mock mode.
+
+History:
+- For MVP, show static weekly mock data if backend does not have weekly endpoint.
+- Add TODO for weekly summary endpoint.
+
+Foods:
+- Search calls backend food search endpoint from docs.
+- Debounce search input by 300ms.
+- Show default sample foods initially.
+
+Profile:
+- GET profile endpoint from docs.
+- PUT profile endpoint from docs.
+- Sign out through Clerk.
+- Clear local app state and route to SignInScreen.
+
+9. Mock mode
+
+Create AppConfig.useMockData boolean.
+
+If true:
+- Repositories return mock data.
+- Auth can use Clerk if available, but allow local mock auth fallback for UI testing only.
+- UI can be tested without backend.
+
+If false:
+- Repositories call real backend.
+- Auth must use real Clerk session token.
+
+Default:
+useMockData = true
+
+Make it easy to switch to real backend.
+
+10. Design system
+
+Use the Stitch design as source of truth, but create these theme helpers:
+- AppColors
+- AppTextStyles
+- AppSpacing
+- AppRadius
+- AppTheme
+
+Components:
+- AppScaffold
+- AppCard
+- AppButton
+- AppTextField
+- AppLoading
+- AppErrorView
+- AppEmptyState
+- AppBottomNav
+
+Use consistent:
+- rounded corners
+- card padding
+- vertical spacing
+- progress indicators
+- soft green accent
+- neutral background
+- dark readable text
+
+Accessibility:
+- Use semantic labels where useful.
+- Ensure text contrast.
+- Buttons should have comfortable tap targets.
+- Do not rely only on color for progress status.
+
+11. Visual requirements
+
+Match Stitch design for:
+- Today dashboard
+- Add food screen
+- Food confirmation screen
+- Meal saved screen
+- Bottom navigation
+- Cards
+- Progress rings/bars
+- Empty/error states
+
+For calorie progress:
+- Implement using CustomPainter or CircularProgressIndicator styled to match design.
+- Show central calorie text.
+
+For macro progress:
+- Horizontal progress bars with label, value, and goal.
+
+For micronutrients:
+- Compact cards with nutrient name and value.
+
+For charts:
+- Use fl_chart for History weekly trend chart.
+
+12. Error handling
+
+ApiClient should:
+- catch DioException
+- map backend error shape from the API docs
+- throw ApiException(code, message, statusCode)
+
+UI should:
+- show friendly error messages
+- allow retry
+- handle no internet gracefully
+- handle 401 by signing out through Clerk and routing to SignInScreen
+
+13. Dependencies
+
+Update pubspec.yaml with:
+- clerk_flutter
+- flutter_riverpod
+- riverpod_annotation
+- dio
+- auto_route
+- freezed_annotation
+- json_annotation
+- flutter_secure_storage
+- shared_preferences
+- fl_chart
+- intl
+- collection
+
+Dev dependencies:
+- build_runner
+- freezed
+- json_serializable
+- riverpod_generator
+- flutter_lints
+
+Use current stable compatible versions.
+Ensure Flutter and Dart constraints satisfy clerk_flutter requirements.
+
+14. Deliverables
+
+Generate:
+- Complete Flutter project files needed for lib/
+- Updated pubspec.yaml
+- Complete routing
+- Theme/design system
+- All screens listed above
+- Reusable widgets
+- Riverpod controllers
+- Repositories
+- API client
+- Clerk auth integration through clerk_flutter
+- Models matching backend docs
+- Mock data mode
+- README section explaining:
+  - how to run the app
+  - how to switch mock mode off
+  - how to set backend URL
+  - how to provide CLERK_PUBLISHABLE_KEY
+  - how auth token is attached to API requests
+  - what remains TODO
+
+15. Do not implement
+
+Do not implement:
+- Backend code
+- Firebase
+- Convex
+- Supabase
+- Custom password authentication
+- Payment
+- Barcode scanning
+- Food image recognition
+- Push notifications
+- Wearable integrations
+- Complex analytics
+- Admin panel
+
+Expected result:
+A polished Flutter app matching the connected Stitch design "AaharLog App UI Design", using the deployed API at https://calorie-tracker-api.developernpne.workers.dev, reading the API docs at https://calorie-tracker-api.developernpne.workers.dev/docs, using Clerk authentication through clerk_flutter, with clean architecture, mock data support, API integration, and the complete calorie tracking UI flow.
