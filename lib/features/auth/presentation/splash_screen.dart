@@ -45,7 +45,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.eco_rounded, size: 76, color: AppColors.primary),
+              Icon(
+                Icons.local_fire_department_rounded,
+                size: 76,
+                color: AppColors.primary,
+              ),
               SizedBox(height: 18),
               Text(AppConstants.appName, style: AppTextStyles.title),
               SizedBox(height: 6),

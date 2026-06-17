@@ -24,7 +24,7 @@ Future<void> main() async {
           LocalPreferences(sharedPreferences),
         ),
       ],
-      child: const AaharLogApp(),
+      child: const MyCalorieApp(),
     ),
   );
 }

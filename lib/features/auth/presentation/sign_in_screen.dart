@@ -15,7 +15,7 @@ class SignInScreen extends ConsumerWidget {
         children: [
           const Spacer(),
           const Icon(
-            Icons.restaurant_menu_rounded,
+            Icons.local_fire_department_rounded,
             size: 52,
             color: AppColors.primary,
           ),
@@ -68,7 +68,7 @@ class SupabaseSignInBody extends StatelessWidget {
         children: const [
           SizedBox(height: 24),
           Icon(
-            Icons.restaurant_menu_rounded,
+            Icons.local_fire_department_rounded,
             size: 52,
             color: AppColors.primary,
           ),
@@ -244,7 +244,7 @@ class _EmailOnlySupabaseFormState extends ConsumerState<EmailOnlySupabaseForm> {
             child: Text(
               signingUp
                   ? 'Already have an account? Sign in'
-                  : 'New to AaharLog? Create account',
+                  : 'New to My Calorie? Create account',
             ),
           ),
         ],

@@ -79,7 +79,8 @@ class ApiClient {
     }
     return ApiException(
       code: 'NETWORK_ERROR',
-      message: 'Could not reach AaharLog. Check your connection and try again.',
+      message:
+          'Could not reach My Calorie. Check your connection and try again.',
       statusCode: error.response?.statusCode,
     );
   }

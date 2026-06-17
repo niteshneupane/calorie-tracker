@@ -1,6 +1,6 @@
-# AaharLog
+# My Calorie
 
-AaharLog is a Flutter mobile calorie tracker for logging meals in natural text,
+My Calorie is a Flutter mobile calorie tracker for logging meals in natural text,
 such as `chowmin 1 plate`, `dal bhat 1 thali`, or `2 boiled eggs`.
 
 The app is structured with Riverpod controllers, repository classes, a Dio API

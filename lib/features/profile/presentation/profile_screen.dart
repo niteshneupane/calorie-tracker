@@ -27,7 +27,7 @@ class ProfileScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user.name ?? 'AaharLog user',
+                          user.name ?? 'My Calorie user',
                           style: AppTextStyles.cardTitle,
                         ),
                         Text(

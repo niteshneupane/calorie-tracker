@@ -60,8 +60,8 @@ part 'features/profile/presentation/widgets/settings_list_tile.dart';
 part 'shared/widgets/app_shell.dart';
 part 'shared/widgets/screen_helpers.dart';
 
-class AaharLogApp extends ConsumerWidget {
-  const AaharLogApp({super.key});
+class MyCalorieApp extends ConsumerWidget {
+  const MyCalorieApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

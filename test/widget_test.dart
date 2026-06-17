@@ -14,11 +14,11 @@ void main() {
         overrides: [
           localPreferencesProvider.overrideWithValue(LocalPreferences(prefs)),
         ],
-        child: const AaharLogApp(),
+        child: const MyCalorieApp(),
       ),
     );
 
-    expect(find.text('AaharLog'), findsOneWidget);
+    expect(find.text('My Calorie'), findsOneWidget);
     expect(find.text('Track meals naturally'), findsOneWidget);
 
     await tester.pump(const Duration(milliseconds: 900));

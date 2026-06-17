@@ -1,5 +1,5 @@
 class AppConstants {
-  static const appName = 'AaharLog';
+  static const appName = 'My Calorie';
   static const tagline = 'Track meals naturally';
   static const mealTypes = ['breakfast', 'lunch', 'snack', 'dinner'];
   static const quickEntries = [
