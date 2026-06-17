@@ -43,7 +43,7 @@ export function openApiSpec(origin: string): Record<string, unknown> {
       title: "Calorie Tracker API",
       version: "0.1.0",
       description:
-        "Cloudflare Workers backend for food text parsing, D1-based nutrition previews, meal logs, daily summaries, and user profiles. Use the Authorize button with a Clerk JWT for protected endpoints.",
+        "Cloudflare Workers backend for food text parsing, D1-based nutrition previews, meal logs, daily summaries, and user profiles. Use the Authorize button with a Supabase access token for protected endpoints.",
     },
     servers: [{ url: origin }],
     tags: [
@@ -59,7 +59,7 @@ export function openApiSpec(origin: string): Record<string, unknown> {
           type: "http",
           scheme: "bearer",
           bearerFormat: "JWT",
-          description: "Paste a Clerk JWT. Swagger will send it as Authorization: Bearer <token>.",
+          description: "Paste a Supabase access token. Swagger will send it as Authorization: Bearer <token>.",
         },
       },
       schemas: schemas(),
@@ -444,7 +444,7 @@ function schemas(): Record<string, unknown> {
       type: "object",
       properties: {
         id: { type: "string", example: "user_2abc" },
-        authProvider: { type: "string", example: "clerk" },
+        authProvider: { type: "string", example: "supabase" },
         authUid: { type: "string", example: "user_2abc" },
         name: { type: ["string", "null"], example: "Demo User" },
         email: { type: ["string", "null"], example: "demo@example.com" },

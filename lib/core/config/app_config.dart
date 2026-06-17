@@ -5,11 +5,16 @@ class AppConfig {
   );
   static const useMockData = bool.fromEnvironment(
     'USE_MOCK_DATA',
-    defaultValue: true,
+    defaultValue: false,
   );
-  static const clerkPublishableKey = String.fromEnvironment(
-    'CLERK_PUBLISHABLE_KEY',
+  static const supabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: 'https://reoakapmucltbdqmrwkt.supabase.co',
+  );
+  static const supabasePublishableKey = String.fromEnvironment(
+    'SUPABASE_PUBLISHABLE_KEY',
     defaultValue: '',
   );
-  static const hasClerkPublishableKey = clerkPublishableKey != '';
+  static const hasSupabaseConfig =
+      supabaseUrl != '' && supabasePublishableKey != '';
 }

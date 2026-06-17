@@ -4,7 +4,7 @@ class TokenStorage {
   const TokenStorage(this._storage);
 
   final FlutterSecureStorage _storage;
-  static const _tokenKey = 'clerk_session_jwt';
+  static const _tokenKey = 'auth_session_jwt';
 
   Future<String?> readToken() => _storage.read(key: _tokenKey);
 

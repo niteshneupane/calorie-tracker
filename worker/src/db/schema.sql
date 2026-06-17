@@ -2,7 +2,7 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
-  auth_provider TEXT NOT NULL DEFAULT 'clerk',
+  auth_provider TEXT NOT NULL DEFAULT 'supabase',
   auth_uid TEXT NOT NULL UNIQUE,
   name TEXT,
   email TEXT,

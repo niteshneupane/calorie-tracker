@@ -161,7 +161,7 @@ async function ensureUser(env: Bindings, userId: string): Promise<void> {
   const timestamp = nowIso();
   await env.DB.prepare(
     `INSERT INTO users (id, auth_provider, auth_uid, created_at, updated_at)
-     VALUES (?, 'clerk', ?, ?, ?)
+     VALUES (?, 'supabase', ?, ?, ?)
      ON CONFLICT(id) DO NOTHING`,
   )
     .bind(userId, userId, timestamp, timestamp)

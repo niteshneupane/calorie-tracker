@@ -33,9 +33,9 @@ export async function upsertProfile(env: Bindings, userId: string, authUser: Aut
     `INSERT INTO users (
       id, auth_provider, auth_uid, name, email, age, sex, height_cm, weight_kg, activity_level, goal,
       daily_calorie_goal, protein_goal_g, carbs_goal_g, fat_goal_g, created_at, updated_at
-    ) VALUES (?, 'clerk', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, 'supabase', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
-      auth_provider = 'clerk',
+      auth_provider = 'supabase',
       auth_uid = excluded.auth_uid,
       name = excluded.name,
       email = excluded.email,

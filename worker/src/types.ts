@@ -2,9 +2,8 @@ export type Bindings = {
   DB: D1Database;
   FOOD_PARSE_CACHE: KVNamespace;
   AI: Ai;
-  CLERK_ISSUER: string;
-  CLERK_JWKS_URL: string;
-  CLERK_AUDIENCE?: string;
+  SUPABASE_URL: string;
+  SUPABASE_PUBLISHABLE_KEY: string;
 };
 
 export type Variables = {

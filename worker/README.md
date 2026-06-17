@@ -1,6 +1,6 @@
 # Calorie Tracker API
 
-Backend foundation for a calorie intake tracker app. Users can enter natural food text, preview nutrition from a D1 food database, save confirmed meals, and read daily summaries scoped to their Clerk identity.
+Backend foundation for a calorie intake tracker app. Users can enter natural food text, preview nutrition from a D1 food database, save confirmed meals, and read daily summaries scoped to their Supabase identity.
 
 ## Tech Stack
 
@@ -10,7 +10,7 @@ Backend foundation for a calorie intake tracker app. Users can enter natural foo
 - Cloudflare D1
 - Cloudflare KV
 - Cloudflare Workers AI
-- Clerk authentication
+- Supabase authentication
 - Wrangler
 
 ## Setup
@@ -20,7 +20,7 @@ cd worker
 npm install
 ```
 
-Copy `wrangler.toml` values to match your Cloudflare account and Clerk instance.
+Copy `wrangler.toml` values to match your Cloudflare account and Supabase project.
 
 ## Create Cloudflare D1 Database
 
@@ -38,17 +38,14 @@ npx wrangler kv namespace create FOOD_PARSE_CACHE
 
 Copy the returned namespace `id` into `wrangler.toml`.
 
-## Configure Clerk
+## Configure Supabase
 
 Set these values in `wrangler.toml` or Cloudflare dashboard environment variables:
 
 ```toml
-CLERK_ISSUER = "https://your-clerk-domain.clerk.accounts.dev"
-CLERK_JWKS_URL = "https://your-clerk-domain.clerk.accounts.dev/.well-known/jwks.json"
-CLERK_AUDIENCE = ""
+SUPABASE_URL = "https://YOUR_PROJECT_REF.supabase.co"
+SUPABASE_PUBLISHABLE_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY"
 ```
-
-`CLERK_AUDIENCE` is optional. Leave it empty unless your Clerk JWT template sets an audience claim.
 
 ## Apply Schema Locally
 
@@ -92,7 +89,7 @@ The OpenAPI JSON document is available at:
 https://<your-worker-domain>/openapi.json
 ```
 
-Use the Swagger `Authorize` button to paste a Clerk JWT before trying protected endpoints.
+Use the Swagger `Authorize` button to paste a Supabase access token before trying protected endpoints.
 
 ## Curl Examples
 
@@ -105,14 +102,14 @@ curl http://localhost:8787/
 All API requests except `GET /` require:
 
 ```http
-Authorization: Bearer <clerk_jwt>
+Authorization: Bearer <supabase_access_token>
 ```
 
 Parse food text:
 
 ```bash
 curl -X POST http://localhost:8787/api/food/parse \
-  -H "Authorization: Bearer <clerk_jwt>" \
+  -H "Authorization: Bearer <supabase_access_token>" \
   -H "Content-Type: application/json" \
   -d '{"text":"chowmin 1 plate","locale":"ne-NP"}'
 ```
@@ -121,7 +118,7 @@ Preview nutrition:
 
 ```bash
 curl -X POST http://localhost:8787/api/food/preview \
-  -H "Authorization: Bearer <clerk_jwt>" \
+  -H "Authorization: Bearer <supabase_access_token>" \
   -H "Content-Type: application/json" \
   -d '{"items":[{"canonicalName":"vegetable chowmein","quantity":1,"unit":"plate","grams":350}]}'
 ```
@@ -130,21 +127,21 @@ Search foods:
 
 ```bash
 curl "http://localhost:8787/api/food/search?q=chowmein" \
-  -H "Authorization: Bearer <clerk_jwt>"
+  -H "Authorization: Bearer <supabase_access_token>"
 ```
 
 The alias route is also available:
 
 ```bash
 curl "http://localhost:8787/api/foods/search?q=chowmein" \
-  -H "Authorization: Bearer <clerk_jwt>"
+  -H "Authorization: Bearer <supabase_access_token>"
 ```
 
 Save meal:
 
 ```bash
 curl -X POST http://localhost:8787/api/meals \
-  -H "Authorization: Bearer <clerk_jwt>" \
+  -H "Authorization: Bearer <supabase_access_token>" \
   -H "Content-Type: application/json" \
   -d '{
     "date":"2026-06-17",
@@ -175,35 +172,35 @@ Get meals by date:
 
 ```bash
 curl "http://localhost:8787/api/meals?date=2026-06-17" \
-  -H "Authorization: Bearer <clerk_jwt>"
+  -H "Authorization: Bearer <supabase_access_token>"
 ```
 
 Delete meal:
 
 ```bash
 curl -X DELETE "http://localhost:8787/api/meals/meal_xxx?date=2026-06-17" \
-  -H "Authorization: Bearer <clerk_jwt>"
+  -H "Authorization: Bearer <supabase_access_token>"
 ```
 
 Daily summary:
 
 ```bash
 curl "http://localhost:8787/api/daily-summary?date=2026-06-17" \
-  -H "Authorization: Bearer <clerk_jwt>"
+  -H "Authorization: Bearer <supabase_access_token>"
 ```
 
 Get profile:
 
 ```bash
 curl http://localhost:8787/api/profile \
-  -H "Authorization: Bearer <clerk_jwt>"
+  -H "Authorization: Bearer <supabase_access_token>"
 ```
 
 Upsert profile:
 
 ```bash
 curl -X PUT http://localhost:8787/api/profile \
-  -H "Authorization: Bearer <clerk_jwt>" \
+  -H "Authorization: Bearer <supabase_access_token>" \
   -H "Content-Type: application/json" \
   -d '{
     "name":"Demo User",
@@ -223,4 +220,4 @@ curl -X PUT http://localhost:8787/api/profile \
 
 ## Security Notes
 
-The API never accepts `userId` from request bodies or query strings. User-owned data is scoped by the verified Clerk JWT `sub` claim. AI is used only for food parsing and normalization; nutrition calculations use stored D1 food values.
+The API never accepts `userId` from request bodies or query strings. User-owned data is scoped by the verified Supabase access token `sub` claim. AI is used only for food parsing and normalization; nutrition calculations use stored D1 food values.

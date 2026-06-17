@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/api/api_client.dart';
+import '../core/config/app_config.dart';
 import '../core/storage/token_storage.dart';
 import '../core/utils/date_utils.dart';
 import 'dashboard/data/dashboard_repository.dart';
@@ -16,7 +18,13 @@ final tokenStorageProvider = Provider<TokenStorage>(
 );
 
 final apiClientProvider = Provider<ApiClient>(
-  (ref) => ApiClient(() => ref.read(tokenStorageProvider).readToken()),
+  (ref) => ApiClient(() async {
+    if (AppConfig.hasSupabaseConfig) {
+      final token = Supabase.instance.client.auth.currentSession?.accessToken;
+      if (token != null && token.isNotEmpty) return token;
+    }
+    return ref.read(tokenStorageProvider).readToken();
+  }),
 );
 
 final dashboardRepositoryProvider = Provider(
