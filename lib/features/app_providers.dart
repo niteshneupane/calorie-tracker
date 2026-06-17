@@ -159,9 +159,14 @@ class FoodEntryController extends Notifier<AsyncValue<FoodEntryState>> {
     state = const AsyncLoading();
     try {
       final parsed = await _repository.parseFood(text);
+      final preview = parsed.isEmpty ? null : await _repository.preview(parsed);
       final lowConfidence =
-          parsed.isEmpty || parsed.any((item) => item.confidence < 0.45);
-      final preview = lowConfidence ? null : await _repository.preview(parsed);
+          parsed.isEmpty ||
+          preview == null ||
+          preview.items.isEmpty ||
+          preview.items.every(
+            (item) => item.calories <= 0 || item.confidence <= 0,
+          );
       final next = current.copyWith(
         text: text,
         parsed: parsed,

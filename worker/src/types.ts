@@ -4,6 +4,8 @@ export type Bindings = {
   AI: Ai;
   SUPABASE_URL: string;
   SUPABASE_PUBLISHABLE_KEY: string;
+  /** Free USDA FoodData Central key — sign up at fdc.nal.usda.gov/api-key-signup */
+  USDA_API_KEY: string;
 };
 
 export type Variables = {
