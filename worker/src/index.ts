@@ -3,7 +3,6 @@ import { apiDocsHtml, openApiSpec } from "./docs";
 import { requireAuth } from "./middleware/auth.middleware";
 import { corsMiddleware } from "./middleware/cors.middleware";
 import { loggerMiddleware } from "./middleware/logger.middleware";
-import { debugRoutes } from "./routes/debug.routes";
 import { foodRoutes, foodSearchHandler } from "./routes/food.routes";
 import { historyRoutes } from "./routes/history.routes";
 import { mealRoutes } from "./routes/meal.routes";
@@ -22,7 +21,7 @@ app.use("*", loggerMiddleware);
 
 app.onError((error, c) => {
   console.error(error);
-  return fail(c, 500, "INTERNAL_SERVER_ERROR", "Unexpected server error");
+  return fail(c, 500, "INTERNAL_SERVER_ERROR", `Unexpected server error: ${error.message} ${error.stack} ${JSON.stringify(error)}`);
 });
 
 app.notFound((c) => fail(c, 404, "NOT_FOUND", "Route not found"));
