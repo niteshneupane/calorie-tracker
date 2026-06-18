@@ -220,7 +220,9 @@ function parseSingleFoodBlock(block: string): ParsedFoodItem | null {
     rawText: userInput,
     canonicalName,
     quantity: extractQuantity(userInput),
+
     unit: extractUnit(userInput) ?? "serving",
+
     estimatedGrams: parseFloatOrNull(fields["portion_grams"]),
     estimatedMl: null,
     confidence: parseConfidence(fields["confidence"]),
