@@ -5,7 +5,7 @@ import { parseFoodText } from "../services/ai.service";
 import { findFoodByNameOrAlias, listFoods, searchFoods } from "../services/food.service";
 import { estimateNutrition } from "../services/estimation.service";
 import { calculateNutrition, sumNutrition } from "../services/nutrition.service";
-import { isAmbiguousPortion } from "../utils/portion-sanity";
+import { isAmbiguousPortion, sanitiseGrams } from "../utils/portion-sanity";
 import { fail, ok } from "../utils/response";
 import { isNonEmptyString, validateParseFoodRequest, validatePreviewFoodRequest } from "../utils/validators";
 
@@ -30,7 +30,12 @@ foodRoutes.post("/preview", async (c) => {
     const food = await findFoodByNameOrAlias(c.env, item.canonicalName);
 
     if (food) {
-      const grams = item.grams ?? food.default_serving_grams ?? 100;
+      const { grams, isAmbiguous } = sanitiseGrams(
+        item.canonicalName,
+        item.unit ?? null,
+        item.quantity ?? 1,
+        item.grams ?? null,
+      );
       const nutrition = calculateNutrition(food, grams);
       items.push({
         ...nutrition,
@@ -40,7 +45,7 @@ foodRoutes.post("/preview", async (c) => {
         grams,
         confidence: food.confidence ?? 0.8,
         isEstimate: food.source === "seed_estimate",
-        needsManualSelection: false,
+        needsManualSelection: isAmbiguous,
       });
       continue;
     }

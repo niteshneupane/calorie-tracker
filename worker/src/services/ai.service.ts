@@ -220,7 +220,7 @@ function parseSingleFoodBlock(block: string): ParsedFoodItem | null {
     rawText: userInput,
     canonicalName,
     quantity: extractQuantity(userInput),
-    unit: "serving",
+    unit: extractUnit(userInput) ?? "serving",
     estimatedGrams: parseFloatOrNull(fields["portion_grams"]),
     estimatedMl: null,
     confidence: parseConfidence(fields["confidence"]),
@@ -338,7 +338,8 @@ function extractQuantity(text: string): number {
 }
 
 function extractUnit(text: string): string | null {
-  const match = text.match(/\b(?:\d+(?:\.\d+)?\s*)?(plate|thali|cup|bowl|pcs|pieces|piece|serving|egg|eggs)\b/);
+  const units = "plate|thali|cup|bowl|pcs|pieces|piece|serving|egg|eggs|slice|glass|teaspoon|tablespoon|ml|l|handful|g|kg|oz";
+  const match = text.match(new RegExp(`\\b(?:\\d+(?:\\.\\d+)?\\s*)?(${units})\\b`));
   if (!match) return null;
   if (match[1] === "eggs") return "egg";
   if (match[1] === "pieces") return "piece";
