@@ -33,6 +33,14 @@ export type ParsedFoodItem = {
   estimatedMl: number | null;
   confidence: number;
   possibleVariants: string[];
+
+  /** Rich fields from the START_FOOD / END_FOOD parser */
+  fdcKeywords?: string;
+  portionDescription?: string;
+  foodTags?: string[];
+  nepaliEquivalent?: string;
+  preparationNote?: string;
+  naturalSummary?: string;
 };
 
 export type ParseFoodResponse = {
@@ -92,6 +100,15 @@ export type NutritionValues = {
   vitaminAMcg?: number;
   vitaminCMg?: number;
   vitaminB12Mcg?: number;
+  /** Expanded nutrients from USDA FDC */
+  saturatedFatG?: number;
+  transFatG?: number;
+  cholesterolMg?: number;
+  vitaminDMcg?: number;
+  vitaminEMg?: number;
+  vitaminKMcg?: number;
+  folateMcg?: number;
+  caffeineMg?: number;
 };
 
 export type NutritionPreviewItem = NutritionValues & {
