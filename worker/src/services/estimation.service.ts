@@ -64,6 +64,9 @@ type Per100g = {
   cal: number; pro: number; carb: number; fat: number;
   fib: number; sug: number; sod: number; cal_mg: number;
   iron: number; pot: number;
+  sat_fat: number; trans_fat: number; chol: number;
+  vit_d: number; vit_e: number; vit_k: number;
+  folate: number; caffeine: number;
   confidence: number; source: "usda" | "llm";
 };
 
@@ -90,6 +93,14 @@ const NID: Record<number, keyof Omit<Per100g, "confidence" | "source">> = {
   1087: "cal_mg",// Calcium mg
   1089: "iron",  // Iron mg
   1092: "pot",   // Potassium mg
+  1258: "sat_fat",  // Saturated fat g
+  1257: "trans_fat", // Trans fat g
+  1253: "chol",     // Cholesterol mg
+  1114: "vit_d",    // Vitamin D mcg
+  1162: "vit_e",    // Vitamin E mg
+  1185: "vit_k",    // Vitamin K mcg
+  1106: "folate",   // Folate mcg
+  1175: "caffeine", // Caffeine mg
 };
 
 async function usdaLookup(env: Bindings, query: string): Promise<Per100g | null> {
@@ -146,6 +157,10 @@ async function usdaLookup(env: Bindings, query: string): Promise<Per100g | null>
       fat: result.fat ?? 0, fib: result.fib ?? 0, sug: result.sug ?? 0,
       sod: result.sod ?? 0, cal_mg: result.cal_mg ?? 0,
       iron: result.iron ?? 0, pot: result.pot ?? 0,
+      sat_fat: result.sat_fat ?? 0, trans_fat: result.trans_fat ?? 0,
+      chol: result.chol ?? 0, vit_d: result.vit_d ?? 0,
+      vit_e: result.vit_e ?? 0, vit_k: result.vit_k ?? 0,
+      folate: result.folate ?? 0, caffeine: result.caffeine ?? 0,
       confidence: 0.85, source: "usda",
     };
   } catch {
@@ -161,20 +176,15 @@ async function usdaLookup(env: Bindings, query: string): Promise<Per100g | null>
 
 async function llmEstimate(env: Bindings, foodName: string): Promise<Per100g | null> {
   try {
-    const result = await (env.AI as AiRun).run("@cf/meta/llama-3.1-8b-instruct", {
-      messages: [
-        {
-          role: "system",
-          content: "Nutrition expert. Reply with ONLY 10 comma-separated numbers. No text, no units, no explanation.",
-        },
-        {
-          role: "user",
-          content:
-            `Per 100g of "${foodName}" (South Asian/Nepali context if applicable), give:\n` +
-            `kcal, protein_g, carbs_g, fat_g, fiber_g, sugar_g, sodium_mg, calcium_mg, iron_mg, potassium_mg`,
-        },
-      ],
-    });
+    const messages = [
+      { role: "system", content: "Nutrition expert. Reply with ONLY 10 comma-separated numbers. No text, no units, no explanation." },
+      { role: "user", content: `Per 100g of "${foodName}" (South Asian/Nepali context if applicable), give:\nkcal, protein_g, carbs_g, fat_g, fiber_g, sugar_g, sodium_mg, calcium_mg, iron_mg, potassium_mg` },
+    ];
+    console.log("[AI DEBUG] estimate prompt:", JSON.stringify(messages));
+
+    const result = await (env.AI as AiRun).run("@cf/meta/llama-3.2-3b-instruct", { messages });
+
+    console.log("[AI DEBUG] estimate raw response:", JSON.stringify(result));
 
     const text = extractText(result)?.trim() ?? "";
     // Accept either a plain CSV line or a JSON array like [165,31,0,...]
@@ -196,6 +206,8 @@ async function llmEstimate(env: Bindings, foodName: string): Promise<Per100g | n
       cal_mg: clamp(nums[7] ?? 0, 0, 1500),
       iron:   clamp(nums[8] ?? 0, 0, 50),
       pot:    clamp(nums[9] ?? 0, 0, 5000),
+      sat_fat: 0, trans_fat: 0, chol: 0, vit_d: 0,
+      vit_e: 0, vit_k: 0, folate: 0, caffeine: 0,
       confidence: 0.55,
       source: "llm",
     };
@@ -228,6 +240,14 @@ function toEstimate(
     calciumMg:  Math.round(p.cal_mg * f),
     ironMg:     r1(p.iron * f),
     potassiumMg: Math.round(p.pot   * f),
+    saturatedFatG:  r1(p.sat_fat  * f),
+    transFatG:      r1(p.trans_fat * f),
+    cholesterolMg:  Math.round(p.chol    * f),
+    vitaminDMcg:    r1(p.vit_d * f),
+    vitaminEMg:     r1(p.vit_e * f),
+    vitaminKMcg:    r1(p.vit_k * f),
+    folateMcg:      r1(p.folate * f),
+    caffeineMg:     r1(p.caffeine * f),
     estimatedGrams: grams,
     confidence: p.confidence,
     source: p.source,
@@ -241,7 +261,9 @@ function toEstimate(
 
 function zero(): NutritionValues {
   return { calories:0, proteinG:0, carbsG:0, fatG:0, fiberG:0,
-           sugarG:0, sodiumMg:0, calciumMg:0, ironMg:0, potassiumMg:0 };
+           sugarG:0, sodiumMg:0, calciumMg:0, ironMg:0, potassiumMg:0,
+           saturatedFatG:0, transFatG:0, cholesterolMg:0,
+           vitaminDMcg:0, vitaminEMg:0, vitaminKMcg:0, folateMcg:0, caffeineMg:0 };
 }
 function clamp(v: number, mn: number, mx: number) { return Math.min(Math.max(v, mn), mx); }
 function r1(v: number) { return Math.round(v * 10) / 10; }
@@ -249,6 +271,13 @@ function extractText(r: unknown): string | null {
   if (typeof r === "string") return r;
   if (r && typeof r === "object") {
     const o = r as Record<string, unknown>;
+    // OpenAI-compatible chat format: choices[0].message.content
+    const choices = o.choices;
+    if (Array.isArray(choices) && choices.length > 0) {
+      const msg = choices[0]?.message;
+      if (msg && typeof msg.content === "string") return msg.content;
+    }
+    // Original Workers AI format
     if (typeof o.response === "string") return o.response;
   }
   return null;
