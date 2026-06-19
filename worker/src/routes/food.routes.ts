@@ -5,7 +5,7 @@ import { parseFoodText } from "../services/ai.service";
 import { findFoodByNameOrAlias, listFoods, searchFoods } from "../services/food.service";
 import { estimateNutrition } from "../services/estimation.service";
 import { calculateNutrition, sumNutrition } from "../services/nutrition.service";
-import { isAmbiguousPortion } from "../utils/portion-sanity";
+import { isAmbiguousPortion, sanitiseGrams } from "../utils/portion-sanity";
 import { fail, ok } from "../utils/response";
 import { isNonEmptyString, validateParseFoodRequest, validatePreviewFoodRequest } from "../utils/validators";
 
@@ -27,6 +27,28 @@ foodRoutes.post("/preview", async (c) => {
 
   for (const item of validation.value.items) {
 
+    if (food) {
+      const { grams, isAmbiguous } = sanitiseGrams(
+        item.canonicalName,
+        item.unit ?? null,
+        item.quantity ?? 1,
+        item.grams ?? null,
+      );
+      const nutrition = calculateNutrition(food, grams);
+      items.push({
+        ...nutrition,
+        foodId: food.id,
+        name: food.name,
+        inputName: item.canonicalName,
+        grams,
+        confidence: food.confidence ?? 0.8,
+        isEstimate: food.source === "seed_estimate",
+        needsManualSelection: isAmbiguous,
+      });
+      continue;
+    }
+
+    // 2. Not in local DB — estimate via USDA → Llama fallback chain
     const estimated = await estimateNutrition(
       c.env,
       item.canonicalName,

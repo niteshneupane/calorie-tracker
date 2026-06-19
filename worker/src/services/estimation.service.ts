@@ -35,10 +35,10 @@ export async function estimateNutrition(
   inputGrams: number | null,
 ): Promise<EstimatedNutrition> {
   const key = `est2:${canonicalName.toLowerCase().replace(/\s+/g, "_")}`;
-  const cached = await env.FOOD_PARSE_CACHE.get(key, "json").catch(() => null);
-  if (cached && isPer100g(cached)) {
-    return toEstimate(cached, canonicalName, unit, quantity, inputGrams);
-  }
+  // const cached = await env.FOOD_PARSE_CACHE.get(key, "json").catch(() => null);
+  // if (cached && isPer100g(cached)) {
+  //   return toEstimate(cached, canonicalName, unit, quantity, inputGrams);
+  // }
 
   const usda = await usdaLookup(env, canonicalName);
   if (usda) {

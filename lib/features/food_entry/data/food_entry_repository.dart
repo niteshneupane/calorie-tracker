@@ -53,7 +53,7 @@ class FoodEntryRepository {
         'items': items
             .map(
               (item) => {
-                'canonicalName': item.canonicalName,
+                'canonicalName': item.fdcKeywords ?? item.canonicalName,
                 'quantity': item.quantity,
                 'unit': item.unit,
                 if (item.estimatedGrams != null) 'grams': item.estimatedGrams,
