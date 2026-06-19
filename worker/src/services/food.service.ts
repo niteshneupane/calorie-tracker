@@ -1,13 +1,14 @@
 import type { Bindings, FoodRow, PublicFood } from "../types";
+import * as foodRepo from "../repositories/food.repository";
 
-export async function findFoodByNameOrAlias(env: Bindings, name: string): Promise<FoodRow | null> {
+export async function findFoodByNameOrAlias(env: Bindings, name: string) {
   const normalized = normalize(name);
-  const exact = await env.DB.prepare("SELECT * FROM foods WHERE lower(name) = ? LIMIT 1").bind(normalized).first<FoodRow>();
+  const exact = await foodRepo.findByName(env, normalized);
   if (exact) return exact;
 
   const escaped = normalized.replace(/[%_]/g, "\\$&");
-  const candidates = await env.DB.prepare("SELECT * FROM foods WHERE lower(aliases) LIKE ? ESCAPE '\\' LIMIT 50").bind(`%${escaped}%`).all<FoodRow>();
-  for (const food of candidates.results ?? []) {
+  const candidates = await foodRepo.findByAliasLike(env, escaped);
+  for (const food of candidates) {
     const aliases = parseAliases(food.aliases);
     if (aliases.some((alias) => normalize(alias) === normalized)) return food;
   }
@@ -18,15 +19,13 @@ export async function findFoodByNameOrAlias(env: Bindings, name: string): Promis
 export async function searchFoods(env: Bindings, query: string): Promise<PublicFood[]> {
   const normalized = normalize(query);
   const escaped = normalized.replace(/[%_]/g, "\\$&");
-  const result = await env.DB.prepare("SELECT * FROM foods WHERE lower(name) LIKE ? OR lower(aliases) LIKE ? ORDER BY name LIMIT 20")
-    .bind(`%${escaped}%`, `%${escaped}%`)
-    .all<FoodRow>();
-  return (result.results ?? []).map(mapFoodRowToPublicFood);
+  const rows = await foodRepo.search(env, escaped);
+  return rows.map(mapFoodRowToPublicFood);
 }
 
 export async function listFoods(env: Bindings): Promise<PublicFood[]> {
-  const result = await env.DB.prepare("SELECT * FROM foods ORDER BY name LIMIT 20").all<FoodRow>();
-  return (result.results ?? []).map(mapFoodRowToPublicFood);
+  const rows = await foodRepo.list(env);
+  return rows.map(mapFoodRowToPublicFood);
 }
 
 export function mapFoodRowToPublicFood(food: FoodRow): PublicFood {

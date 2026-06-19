@@ -47,6 +47,7 @@ export function openApiSpec(origin: string): Record<string, unknown> {
     },
     servers: [{ url: origin }],
     tags: [
+      { name: "Auth" },
       { name: "Health" },
       { name: "Food" },
       { name: "Meals" },
@@ -66,6 +67,32 @@ export function openApiSpec(origin: string): Record<string, unknown> {
       schemas: schemas(),
     },
     paths: {
+      "/auth/login": {
+        post: {
+          tags: ["Auth"],
+          summary: "Login with email and password",
+          description: "Authenticates against Supabase Auth and returns a Bearer token for subsequent API calls.",
+          security: [],
+          requestBody: jsonBody("Login credentials", "LoginRequest"),
+          responses: {
+            "200": jsonResponse("Login response with token", "LoginResponse"),
+            "400": errorResponse(),
+            "401": errorResponse(),
+          },
+        },
+      },
+      "/auth/signup": {
+        post: {
+          tags: ["Auth"],
+          summary: "Create a new account",
+          security: [],
+          requestBody: jsonBody("Signup credentials", "SignupRequest"),
+          responses: {
+            "200": jsonResponse("Signup response", "SignupResponse"),
+            "400": errorResponse(),
+          },
+        },
+      },
       "/": {
         get: {
           tags: ["Health"],
@@ -254,6 +281,56 @@ function schemas(): Record<string, unknown> {
   };
 
   return {
+    LoginRequest: {
+      type: "object",
+      properties: {
+        email: { type: "string", format: "email", example: "demo@example.com" },
+        password: { type: "string", example: "mypassword123" },
+      },
+      required: ["email", "password"],
+    },
+    LoginResponse: {
+      type: "object",
+      properties: {
+        token: { type: "string", example: "eyJhbGciOiJIUzI1NiIs..." },
+        tokenType: { type: "string", example: "bearer" },
+        expiresIn: { type: "number", example: 3600 },
+        refreshToken: { type: "string", example: "eyJhbGciOiJIUzI1NiIs..." },
+        user: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "550e8400-e29b-41d4-a716-446655440000" },
+            email: { type: "string", example: "demo@example.com" },
+          },
+          required: ["id"],
+        },
+      },
+      required: ["token", "tokenType", "expiresIn", "refreshToken", "user"],
+    },
+    SignupRequest: {
+      type: "object",
+      properties: {
+        email: { type: "string", format: "email", example: "demo@example.com" },
+        password: { type: "string", example: "mypassword123" },
+      },
+      required: ["email", "password"],
+    },
+    SignupResponse: {
+      type: "object",
+      properties: {
+        user: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "550e8400-e29b-41d4-a716-446655440000" },
+            email: { type: "string", example: "demo@example.com" },
+          },
+          required: ["id"],
+        },
+        token: { type: "string", example: "eyJhbGciOiJIUzI1NiIs..." },
+        tokenType: { type: "string", example: "bearer" },
+        expiresIn: { type: "number", example: 3600 },
+      },
+    },
     HealthResponse: {
       type: "object",
       properties: {

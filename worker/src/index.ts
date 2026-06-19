@@ -3,6 +3,7 @@ import { apiDocsHtml, openApiSpec } from "./docs";
 import { requireAuth } from "./middleware/auth.middleware";
 import { corsMiddleware } from "./middleware/cors.middleware";
 import { loggerMiddleware } from "./middleware/logger.middleware";
+import { authRoutes } from "./routes/auth.routes";
 import { debugRoutes } from "./routes/debug.routes";
 import { foodRoutes, foodSearchHandler } from "./routes/food.routes";
 import { historyRoutes } from "./routes/history.routes";
@@ -36,6 +37,7 @@ app.get("/", (c) =>
 
 app.get("/docs", (c) => c.html(apiDocsHtml()));
 app.get("/openapi.json", (c) => c.json(openApiSpec(new URL(c.req.url).origin)));
+app.route("/auth", authRoutes);
 
 // Temporary: test endpoint for parse without auth
 app.post("/parse", async (c) => {

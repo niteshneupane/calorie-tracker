@@ -1,29 +1,7 @@
 import type { Bindings, DailySummary, NutritionValues } from "../types";
 import { zeroDailySummary } from "./nutrition.service";
-
-type DailySummaryRow = {
-  date: string;
-  calories: number | null;
-  protein_g: number | null;
-  carbs_g: number | null;
-  fat_g: number | null;
-  fiber_g: number | null;
-  sugar_g: number | null;
-  sodium_mg: number | null;
-  calcium_mg: number | null;
-  iron_mg: number | null;
-  potassium_mg: number | null;
-  vitamin_a_mcg: number | null;
-  vitamin_c_mg: number | null;
-  vitamin_b12_mcg: number | null;
-};
-
-type GoalRow = {
-  daily_calorie_goal: number | null;
-  protein_goal_g: number | null;
-  carbs_goal_g: number | null;
-  fat_goal_g: number | null;
-};
+import * as summaryRepo from "../repositories/summary.repository";
+import * as userRepo from "../repositories/user.repository";
 
 export async function getDailySummary(env: Bindings, userId: string, date: string): Promise<{
   date: string;
@@ -31,12 +9,10 @@ export async function getDailySummary(env: Bindings, userId: string, date: strin
   consumed: DailySummary;
   remaining: { calories: number; proteinG: number; carbsG: number; fatG: number } | null;
 }> {
-  const summaryRow = await env.DB.prepare("SELECT * FROM daily_summaries WHERE user_id = ? AND date = ? LIMIT 1").bind(userId, date).first<DailySummaryRow>();
+  const summaryRow = await summaryRepo.findByUserIdAndDate(env, userId, date);
   const consumed = summaryRow ? mapSummaryRow(summaryRow) : zeroDailySummary(date);
 
-  const profile = await env.DB.prepare("SELECT daily_calorie_goal, protein_goal_g, carbs_goal_g, fat_goal_g FROM users WHERE id = ? LIMIT 1")
-    .bind(userId)
-    .first<GoalRow>();
+  const profile = await userRepo.findGoalsById(env, userId);
 
   const goal = profile && profile.daily_calorie_goal !== null
     ? {
@@ -59,7 +35,7 @@ export async function getDailySummary(env: Bindings, userId: string, date: strin
   return { date, goal, consumed, remaining };
 }
 
-function mapSummaryRow(row: DailySummaryRow): DailySummary {
+function mapSummaryRow(row: summaryRepo.DailySummaryRow): DailySummary {
   const values: NutritionValues = {
     calories: Math.round(row.calories ?? 0),
     proteinG: Math.round(row.protein_g ?? 0),

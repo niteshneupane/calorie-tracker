@@ -26,26 +26,7 @@ foodRoutes.post("/preview", async (c) => {
   const items: NutritionPreviewItem[] = [];
 
   for (const item of validation.value.items) {
-    // 1. Try local DB first (fastest, most accurate for Nepali foods)
-    const food = await findFoodByNameOrAlias(c.env, item.canonicalName);
 
-    if (food) {
-      const grams = item.grams ?? food.default_serving_grams ?? 100;
-      const nutrition = calculateNutrition(food, grams);
-      items.push({
-        ...nutrition,
-        foodId: food.id,
-        name: food.name,
-        inputName: item.canonicalName,
-        grams,
-        confidence: food.confidence ?? 0.8,
-        isEstimate: food.source === "seed_estimate",
-        needsManualSelection: false,
-      });
-      continue;
-    }
-
-    // 2. Not in local DB — estimate via USDA → Llama fallback chain
     const estimated = await estimateNutrition(
       c.env,
       item.canonicalName,
