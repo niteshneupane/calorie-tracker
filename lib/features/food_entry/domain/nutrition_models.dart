@@ -83,6 +83,7 @@ class ParsedFoodItem {
     required this.estimatedMl,
     required this.confidence,
     required this.possibleVariants,
+    this.fdcKeywords,
   });
 
   final String rawText;
@@ -92,18 +93,23 @@ class ParsedFoodItem {
   final double? estimatedGrams;
   final double? estimatedMl;
   final double confidence;
+  final String? fdcKeywords;
   final List<String> possibleVariants;
 
-  factory ParsedFoodItem.fromJson(Map<String, dynamic> json) => ParsedFoodItem(
-    rawText: json['rawText'] as String,
-    canonicalName: json['canonicalName'] as String,
-    quantity: _double(json['quantity']),
-    unit: json['unit'] as String,
-    estimatedGrams: _nullableDouble(json['estimatedGrams']),
-    estimatedMl: _nullableDouble(json['estimatedMl']),
-    confidence: _double(json['confidence']),
-    possibleVariants: List<String>.from(json['possibleVariants'] as List),
-  );
+  factory ParsedFoodItem.fromJson(Map<String, dynamic> json) {
+    final String? fdcKeywords = json['fdcKeywords'];
+    return ParsedFoodItem(
+      rawText: json['rawText'] as String,
+      canonicalName: json['canonicalName'] as String,
+      fdcKeywords: fdcKeywords?.split('|').map((s) => s.trim()).join(', '),
+      quantity: _double(json['quantity']),
+      unit: json['unit'] as String,
+      estimatedGrams: _nullableDouble(json['estimatedGrams']),
+      estimatedMl: _nullableDouble(json['estimatedMl']),
+      confidence: _double(json['confidence']),
+      possibleVariants: List<String>.from(json['possibleVariants'] as List),
+    );
+  }
 }
 
 class NutritionPreviewItem extends NutritionValues {
