@@ -1,82 +1,41 @@
 import type { AuthUser, Bindings, UserProfile } from "../types";
 import { nowIso } from "../utils/date";
-
-type UserRow = {
-  id: string;
-  auth_provider: string;
-  auth_uid: string;
-  name: string | null;
-  email: string | null;
-  age: number | null;
-  sex: string | null;
-  height_cm: number | null;
-  weight_kg: number | null;
-  activity_level: string | null;
-  goal: string | null;
-  daily_calorie_goal: number | null;
-  protein_goal_g: number | null;
-  carbs_goal_g: number | null;
-  fat_goal_g: number | null;
-  created_at: string;
-  updated_at: string;
-};
+import * as userRepo from "../repositories/user.repository";
 
 export async function getProfile(env: Bindings, userId: string): Promise<UserProfile | null> {
-  const row = await env.DB.prepare("SELECT * FROM users WHERE id = ? LIMIT 1").bind(userId).first<UserRow>();
+  const row = await userRepo.findById(env, userId);
   return row ? mapUserRow(row) : null;
 }
 
 export async function upsertProfile(env: Bindings, userId: string, authUser: AuthUser, body: Record<string, unknown>): Promise<UserProfile> {
-  const existing = await env.DB.prepare("SELECT created_at FROM users WHERE id = ? LIMIT 1").bind(userId).first<{ created_at: string }>();
+  const existing = await userRepo.findCreatedAtById(env, userId);
   const timestamp = nowIso();
-  await env.DB.prepare(
-    `INSERT INTO users (
-      id, auth_provider, auth_uid, name, email, age, sex, height_cm, weight_kg, activity_level, goal,
-      daily_calorie_goal, protein_goal_g, carbs_goal_g, fat_goal_g, created_at, updated_at
-    ) VALUES (?, 'supabase', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(id) DO UPDATE SET
-      auth_provider = 'supabase',
-      auth_uid = excluded.auth_uid,
-      name = excluded.name,
-      email = excluded.email,
-      age = excluded.age,
-      sex = excluded.sex,
-      height_cm = excluded.height_cm,
-      weight_kg = excluded.weight_kg,
-      activity_level = excluded.activity_level,
-      goal = excluded.goal,
-      daily_calorie_goal = excluded.daily_calorie_goal,
-      protein_goal_g = excluded.protein_goal_g,
-      carbs_goal_g = excluded.carbs_goal_g,
-      fat_goal_g = excluded.fat_goal_g,
-      updated_at = excluded.updated_at`,
-  )
-    .bind(
-      userId,
-      userId,
-      stringOrNull(body.name) ?? authUser.name ?? null,
-      stringOrNull(body.email) ?? authUser.email ?? null,
-      numberOrNull(body.age),
-      stringOrNull(body.sex),
-      numberOrNull(body.heightCm),
-      numberOrNull(body.weightKg),
-      stringOrNull(body.activityLevel),
-      stringOrNull(body.goal),
-      numberOrNull(body.dailyCalorieGoal),
-      numberOrNull(body.proteinGoalG),
-      numberOrNull(body.carbsGoalG),
-      numberOrNull(body.fatGoalG),
-      existing?.created_at ?? timestamp,
-      timestamp,
-    )
-    .run();
+
+  await userRepo.upsert(env, {
+    id: userId,
+    authUid: userId,
+    name: stringOrNull(body.name) ?? authUser.name ?? null,
+    email: stringOrNull(body.email) ?? authUser.email ?? null,
+    age: numberOrNull(body.age),
+    sex: stringOrNull(body.sex),
+    heightCm: numberOrNull(body.heightCm),
+    weightKg: numberOrNull(body.weightKg),
+    activityLevel: stringOrNull(body.activityLevel),
+    goal: stringOrNull(body.goal),
+    dailyCalorieGoal: numberOrNull(body.dailyCalorieGoal),
+    proteinGoalG: numberOrNull(body.proteinGoalG),
+    carbsGoalG: numberOrNull(body.carbsGoalG),
+    fatGoalG: numberOrNull(body.fatGoalG),
+    createdAt: existing?.created_at ?? timestamp,
+    updatedAt: timestamp,
+  });
 
   const profile = await getProfile(env, userId);
   if (!profile) throw new Error("Profile upsert failed");
   return profile;
 }
 
-function mapUserRow(row: UserRow): UserProfile {
+function mapUserRow(row: userRepo.UserRow): UserProfile {
   return {
     id: row.id,
     authProvider: row.auth_provider,

@@ -1,30 +1,11 @@
 import type { Bindings, HistoryDay, HistoryResponse } from "../types";
-
-type HistoryRow = {
-  date: string;
-  calories: number | null;
-  protein_g: number | null;
-  meal_count: number | null;
-};
+import * as summaryRepo from "../repositories/summary.repository";
 
 export async function getHistory(env: Bindings, userId: string, from: string, to: string): Promise<HistoryResponse> {
-  const rows = await env.DB.prepare(
-    `SELECT
-      ds.date,
-      COALESCE(ds.calories, 0) AS calories,
-      COALESCE(ds.protein_g, 0) AS protein_g,
-      COALESCE(COUNT(ml.id), 0) AS meal_count
-    FROM daily_summaries ds
-    LEFT JOIN meal_logs ml ON ml.user_id = ds.user_id AND ml.date = ds.date
-    WHERE ds.user_id = ? AND ds.date >= ? AND ds.date <= ?
-    GROUP BY ds.date, ds.calories, ds.protein_g
-    ORDER BY ds.date DESC`,
-  )
-    .bind(userId, from, to)
-    .all<HistoryRow>();
+  const rows = await summaryRepo.getHistory(env, userId, from, to);
 
   const byDate = new Map<string, HistoryDay>();
-  for (const row of rows.results ?? []) {
+  for (const row of rows) {
     byDate.set(row.date, {
       date: row.date,
       calories: Math.round(row.calories ?? 0),

@@ -26,8 +26,6 @@ foodRoutes.post("/preview", async (c) => {
   const items: NutritionPreviewItem[] = [];
 
   for (const item of validation.value.items) {
-    // 1. Try local DB first (fastest, most accurate for Nepali foods)
-    const food = await findFoodByNameOrAlias(c.env, item.canonicalName);
 
     if (food) {
       const { grams, isAmbiguous } = sanitiseGrams(
