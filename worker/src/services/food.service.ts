@@ -5,7 +5,8 @@ export async function findFoodByNameOrAlias(env: Bindings, name: string): Promis
   const exact = await env.DB.prepare("SELECT * FROM foods WHERE lower(name) = ? LIMIT 1").bind(normalized).first<FoodRow>();
   if (exact) return exact;
 
-  const candidates = await env.DB.prepare("SELECT * FROM foods WHERE lower(aliases) LIKE ? LIMIT 50").bind(`%${normalized}%`).all<FoodRow>();
+  const escaped = normalized.replace(/[%_]/g, "\\$&");
+  const candidates = await env.DB.prepare("SELECT * FROM foods WHERE lower(aliases) LIKE ? ESCAPE '\\' LIMIT 50").bind(`%${escaped}%`).all<FoodRow>();
   for (const food of candidates.results ?? []) {
     const aliases = parseAliases(food.aliases);
     if (aliases.some((alias) => normalize(alias) === normalized)) return food;
@@ -16,8 +17,9 @@ export async function findFoodByNameOrAlias(env: Bindings, name: string): Promis
 
 export async function searchFoods(env: Bindings, query: string): Promise<PublicFood[]> {
   const normalized = normalize(query);
+  const escaped = normalized.replace(/[%_]/g, "\\$&");
   const result = await env.DB.prepare("SELECT * FROM foods WHERE lower(name) LIKE ? OR lower(aliases) LIKE ? ORDER BY name LIMIT 20")
-    .bind(`%${normalized}%`, `%${normalized}%`)
+    .bind(`%${escaped}%`, `%${escaped}%`)
     .all<FoodRow>();
   return (result.results ?? []).map(mapFoodRowToPublicFood);
 }
